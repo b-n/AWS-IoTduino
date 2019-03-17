@@ -1,5 +1,5 @@
-#ifndef IOT.H
-#define IOT.H
+#ifndef __AWSIoTDuino_H__
+#define __AWSIoTDuino_H__
 
 //This before line below also needs to be adjusted in PubSubClient.h
 //#define MQTT_MAX_PACKET_SIZE 512

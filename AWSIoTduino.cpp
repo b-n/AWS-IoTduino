@@ -1,4 +1,4 @@
-#include "IoT.h"
+#include "AWSIoTDuino.h"
 
 void Thing::setup() {
   awsWSclient->setAWSRegion(region);
