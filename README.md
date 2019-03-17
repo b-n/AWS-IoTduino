@@ -5,21 +5,21 @@ An opionated communication with AWS IoT Core
 Current library dependencies are:
 
 - [PubSubClient](https://github.com/knolleary/pubsubclient)
-- [AWS-MQTT-Websockets](https://github.com/odelot/aws-mqtt-websockets)
 
 ## Usage
 
-###Basic usage
+### Basic usage
 
 ```cpp
+#include <PubSubClient.h>
 #include <AWSIoTduino.h>
 
-Thing device(THINGNAME, AWS_ENDPOINT, AWS_KEY, AWS_SECRET, AWS_REGION)
+PubSubClient client();
+
+Thing device(THINGNAME, client);
 
 void setup() {
-  //WiFi.begin(SSID, PSK);
-
-  device.setup();
+  //...
 }
 
 void loop() {
@@ -28,12 +28,15 @@ void loop() {
 
 ```
 
-###Publishing State
+### Publishing State
 
 Using [ArduinoJSON](https://github.com/bblanchon/ArduinoJson)
 
 ```cpp
+#include <AWSIoTduino.h>
 #include <ArduinoJson.h>
+
+Thing device(...);
 
 void updateAWS() {
   const size_t capacity = 3*JSON_OBJECT_SIZE(1) + JSON_OBJECT_SIZE(2);
@@ -47,17 +50,22 @@ void updateAWS() {
   char buffer[512];
   root.printTo(buffer, root.measureLength()+1);
 
-  awsThing.sendState(buffer);
+  device.sendState(buffer);
 }
 ```
 
-###Using callback
+### Using callback
 
 Example using MQTT callback. Function stub must be as follows
 
 ```cpp
+#include <AWSIoTduino.h>
+#include <ArduinoJson.h>
+
 //Also change this is PubSubClient.h
 #define MQTT_MAX_PACKET_SIZE 512
+
+Thing device("thingNameHere", ...);
 
 void AWSCallback(char* topic, byte* payload, unsigned int length) {
   char buf[MQTT_MAX_PACKET_SIZE];
@@ -76,7 +84,6 @@ void AWSCallback(char* topic, byte* payload, unsigned int length) {
 void setup() {
   //...
   
-  device.setup();
   device.setCallback(AWSCallback);
 }
 ```
@@ -90,13 +97,12 @@ void connectedCallback() {
   //if you do this too quickly after connect, you might not be subscribed to the
   //   correct queue to get the state 
   delay(100);
-  awsThing.getState();
+  device.getState();
 }
 
 void setup() {
   //...
 
-  device.setup();
   device.setConnectedCallback(connectedCallback);
 }
 ```
@@ -113,3 +119,30 @@ more info.
 
 - Put proper debug statements in, instead of Serial.print
 - Fix the logic on topic subscription. Is fairly hardcoded now
+
+## Using [aws-mqtt-websockets](https://github.com/odelot/aws-mqtt-websockets)
+
+```cpp
+#include <AWSWebSocketClient.h>
+#include <PubSubClient.h>
+#include <AWSIoTduino.h>
+
+AWSWebSocketClient awsWS(1000);
+PubSubClient mqttClient(awsWS);
+Thing device(THING_NAME, mqttClient);
+
+void setup() {
+  //...
+
+  awsWS.setAWSRegion(aws_region);
+  awsWS.setAWSDomain(aws_endpoint);
+  awsWS.setAWSKeyID(aws_key);
+  awsWS.setAWSSecretKey(aws_secret);
+  awsWS.setUseSSL(true);
+}
+
+void loop() {
+  //...
+
+  device.loop();
+}

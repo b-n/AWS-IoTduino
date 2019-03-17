@@ -1,15 +1,7 @@
 #include "AWSIoTDuino.h"
 
-void Thing::setup() {
-  awsWSclient->setAWSRegion(region);
-  awsWSclient->setAWSDomain(ep);
-  awsWSclient->setAWSKeyID(key);
-  awsWSclient->setAWSSecretKey(secret);
-  awsWSclient->setUseSSL(true);
-}
-
 void Thing::loop() {
-  if (!mqttclient->connected()) {
+  if (!client->connected()) {
     if (connectToMQTT()) {
       Serial.println("Connected to MQTT");
       subscribeToTopics();
@@ -17,33 +9,33 @@ void Thing::loop() {
     }
   }
 
-  if (mqttclient->connected()) {
-    mqttclient->loop();
+  if (client->connected()) {
+    client->loop();
   }
 }
 
 bool Thing::connectToMQTT() {  
-  if (mqttclient->connected()) mqttclient->disconnect();
+  if (client->connected()) client->disconnect();
 
-  mqttclient->setServer(ep, port);
+  client->setServer(ep, port);
   char *clientId = generateClientID();
-  bool connected = mqttclient->connect(clientId);
+  bool connected = client->connect(clientId);
   
   if (!connected) {
     Serial.print("failed to connect to MQTT, state=");
-    Serial.println(mqttclient->state());
+    Serial.println(client->state());
   }
 
   return connected;
 }
 
 void Thing::subscribeToTopics() {
-  mqttclient->setCallback(callback);
+  client->setCallback(callback);
 
   Serial.println("Subscribed to:");
   for (int i = 0; i < 5; i++) {
     Serial.println(topics[i]);
-    mqttclient->subscribe(topics[i]);
+    client->subscribe(topics[i]);
   }
   Serial.println("MQTT subscribed");
 }
@@ -57,11 +49,11 @@ void Thing::setConnectedCallback(std::function<void()> callback) {
 }
 
 void Thing::sendState(char *state) {
-  mqttclient->publish(publishTopic, state);
+  client->publish(publishTopic, state);
 }
 
 void Thing::getState() {
-  mqttclient->publish(getTopic, "");
+  client->publish(getTopic, "");
 }
 
 
