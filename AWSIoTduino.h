@@ -13,7 +13,7 @@ extern "C" {
 
 class Thing {
   public:
-    Thing(char *thingName, PubSubClient& client) : thingName(thingName), client(&client) {
+    Thing(char *thingName, PubSubClient& client, int port = 443) : thingName(thingName), client(&client), port(port) {
       sprintf(topics[0], "$aws/things/%s/shadow/update/accepted", thingName);
       sprintf(topics[1], "$aws/things/%s/shadow/update/rejected", thingName);
       sprintf(topics[2], "$aws/things/%s/shadow/update/delta", thingName);
